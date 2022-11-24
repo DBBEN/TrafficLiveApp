@@ -1,6 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:traffic_live/pages/auth/login_page.dart';
 import 'package:traffic_live/pages/home_page.dart';
 import 'package:traffic_live/shared/constants.dart';
@@ -24,7 +25,6 @@ void main() async {
     //run the initialization for android, ios
     await Firebase.initializeApp();
   }
-
   
   runApp(const MyApp());
 }
@@ -53,6 +53,9 @@ class _MyAppState extends State<MyApp> {
         });
       }
     });
+    // await Geolocator.isLocationServiceEnabled();
+    // await Geolocator.requestPermission();
+    // await Geolocator.getCurrentPosition();
   }
 
   @override

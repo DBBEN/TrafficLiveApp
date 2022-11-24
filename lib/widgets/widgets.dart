@@ -6,16 +6,16 @@ const textInputDecoration = InputDecoration(
       fontWeight: FontWeight.w300,
     ),
     focusedBorder: OutlineInputBorder(
-      borderSide: BorderSide(color: Color(0xFF0D6B45), width: 2),
-      borderRadius: BorderRadius.all(Radius.circular(30)),
+      //borderSide: BorderSide(color: Color(0xFF0D6B45), width: 2),
+      borderRadius: BorderRadius.all(Radius.circular(20)),
     ),
     enabledBorder: OutlineInputBorder(
-      borderSide: BorderSide(color: Color(0xFF0D6B45), width: 2),
-      borderRadius: BorderRadius.all(Radius.circular(30)),
+      //borderSide: BorderSide(color: Color(0xFF0D6B45), width: 2),
+      borderRadius: BorderRadius.all(Radius.circular(20)),
     ),
     errorBorder: OutlineInputBorder(
-      borderSide: BorderSide(color: Color(0xFF0D6B45), width: 2),
-      borderRadius: BorderRadius.all(Radius.circular(30)),
+      //borderSide: BorderSide(color: Color(0xFF0D6B45), width: 2),
+      borderRadius: BorderRadius.all(Radius.circular(20)),
     ));
 
 void nextScreen(context, page) {
