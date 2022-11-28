@@ -23,12 +23,17 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final LocationSettings locationSettings =
+      LocationSettings(accuracy: LocationAccuracy.best);
   final formKey = GlobalKey<FormState>();
   AuthService authService = AuthService();
   final TextEditingController _plateNumber = new TextEditingController();
   final TextEditingController _description = new TextEditingController();
+  final TextEditingController _licenseNumber = new TextEditingController();
+  final TextEditingController _violatorName = new TextEditingController();
   String queryName = "";
   var selectedViolation;
+  var positionData;
   var locationLat;
   var locationLong;
   String gpsAddress = "";
@@ -37,12 +42,15 @@ class _HomePageState extends State<HomePage> {
   String userName = "";
   String email = "";
   int currentIndex = 0;
+  String licenseNumber = "";
+  String violatorName = "";
   String plateNumber = "";
   String description = "";
 
-  Future<void> updateLocation() async {
-    Position pos = await getLocation();
-    List pm = await placemarkFromCoordinates(pos.latitude, pos.longitude);
+  void updateLocation() async {
+    //Position pos = await getLocation();
+    List pm = await placemarkFromCoordinates(
+        positionData.latitude, positionData.longitude);
     Placemark placeMark = pm[0];
     String name = placeMark.name.toString();
     String subLocality = placeMark.subLocality.toString();
@@ -50,13 +58,11 @@ class _HomePageState extends State<HomePage> {
     String country = placeMark.country.toString();
 
     setState(() {
-      locationLat = pos.latitude.toString();
-      locationLong = pos.longitude.toString();
       gpsAddress = "${name}, ${subLocality}, ${locality}, ${country}";
     });
   }
 
-  Future<Position> getLocation() async {
+  handleLocation() async {
     bool serviceEnabled;
     LocationPermission permission;
 
@@ -74,7 +80,7 @@ class _HomePageState extends State<HomePage> {
       }
     }
 
-    return await Geolocator.getCurrentPosition();
+    //return await Geolocator.getCurrentPosition();
 
     // locationLat = position.latitude.toString();//"${position.latitude}";
     // locationLong = position.longitude.toString();//"${position.longitude}";
@@ -84,6 +90,18 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     gettingUserData();
+    handleLocation();
+    StreamSubscription<Position> positionStream =
+        Geolocator.getPositionStream(locationSettings: locationSettings).listen(
+      (Position? position) {
+        if (position != null) {
+          positionData = position;
+          locationLat = position.latitude.toString();
+          locationLat = position.longitude.toString();
+          updateLocation();
+        }
+      },
+    );
   }
 
   gettingUserData() async {
@@ -239,7 +257,68 @@ class _HomePageState extends State<HomePage> {
                         //   style: TextStyle(
                         //       fontSize: 15, fontWeight: FontWeight.bold),
                         // ),
+                        //const SizedBox(height: 15),
+
+                        TextFormField(
+                          textCapitalization: TextCapitalization.characters,
+                          controller: _licenseNumber,
+                          decoration: textInputDecoration.copyWith(
+                              labelText: "License Number",
+                              prefixIcon: Icon(
+                                Icons.credit_card_rounded,
+                                color: Theme.of(context).primaryColor,
+                              ),
+                              focusedBorder: UnderlineInputBorder(),
+                              enabledBorder: UnderlineInputBorder(),
+                              errorBorder: UnderlineInputBorder()),
+                          onChanged: (val) {
+                            setState(() {
+                              val.toUpperCase();
+                              licenseNumber = val.toUpperCase();
+                            });
+                          },
+
+                          //Check the validation
+                          validator: (val) {
+                            if (val!.length < 6) {
+                              return "License number is insufficient";
+                            } else {
+                              return null;
+                            }
+                          },
+                        ),
                         const SizedBox(height: 15),
+
+                        TextFormField(
+                          textCapitalization: TextCapitalization.characters,
+                          controller: _violatorName,
+                          decoration: textInputDecoration.copyWith(
+                              labelText: "Violator Name",
+                              prefixIcon: Icon(
+                                Icons.perm_identity_rounded,
+                                color: Theme.of(context).primaryColor,
+                              ),
+                              focusedBorder: UnderlineInputBorder(),
+                              enabledBorder: UnderlineInputBorder(),
+                              errorBorder: UnderlineInputBorder()),
+                          onChanged: (val) {
+                            setState(() {
+                              val.toUpperCase();
+                              violatorName = val.toUpperCase();
+                            });
+                          },
+
+                          //Check the validation
+                          validator: (val) {
+                            if (val!.length < 2) {
+                              return "Plate number is insufficient";
+                            } else {
+                              return null;
+                            }
+                          },
+                        ),
+                        const SizedBox(height: 15),
+
                         TextFormField(
                           textCapitalization: TextCapitalization.characters,
                           controller: _plateNumber,
@@ -335,10 +414,10 @@ class _HomePageState extends State<HomePage> {
                                     autoValidateMode:
                                         AutovalidateMode.onUserInteraction,
                                     validator: (value) {
-                                      if (value != null) {
-                                        return null;
-                                      } else {
+                                      if (value!.length < 2) {
                                         return "Violation cannot be empty";
+                                      } else {
+                                        return null;
                                       }
                                     },
                                     enabled: true);
@@ -436,7 +515,7 @@ class _HomePageState extends State<HomePage> {
                                         padding: EdgeInsets.all(10),
                                         child: ListTile(
                                           title: Text(
-                                            data['plateNumber'],
+                                            data['licenseNumber'],
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
                                             style: TextStyle(
@@ -448,8 +527,53 @@ class _HomePageState extends State<HomePage> {
                                               crossAxisAlignment:
                                                   CrossAxisAlignment.start,
                                               children: [
+                                                SizedBox(
+                                                  height: 10,
+                                                ),
+                                                Text(
+                                                  "VIOLATOR NAME",
+                                                  textAlign: TextAlign.left,
+                                                  style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.bold),
+                                                ),
+                                                Text(
+                                                  data['violatorName'],
+                                                  textAlign: TextAlign.left,
+                                                  style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.normal),
+                                                ),
+                                                Text(
+                                                  "MV PLATE NUMBER",
+                                                  textAlign: TextAlign.left,
+                                                  style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.bold),
+                                                ),
+                                                Text(
+                                                  data['plateNumber'],
+                                                  textAlign: TextAlign.left,
+                                                  style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.normal),
+                                                ),
+                                                Text(
+                                                  "VIOLATION",
+                                                  textAlign: TextAlign.left,
+                                                  style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.bold),
+                                                ),
                                                 Text(
                                                   data['violation'],
+                                                  textAlign: TextAlign.left,
+                                                  style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.normal),
+                                                ),
+                                                Text(
+                                                  "DATE & TIME",
                                                   textAlign: TextAlign.left,
                                                   style: TextStyle(
                                                       fontWeight:
@@ -460,6 +584,13 @@ class _HomePageState extends State<HomePage> {
                                                   textAlign: TextAlign.left,
                                                   style: TextStyle(
                                                       fontWeight:
+                                                          FontWeight.normal),
+                                                ),
+                                                Text(
+                                                  "LOCATION",
+                                                  textAlign: TextAlign.left,
+                                                  style: TextStyle(
+                                                      fontWeight:
                                                           FontWeight.bold),
                                                 ),
                                                 Text(
@@ -467,7 +598,14 @@ class _HomePageState extends State<HomePage> {
                                                   textAlign: TextAlign.left,
                                                   style: TextStyle(
                                                       fontWeight:
-                                                          FontWeight.bold),
+                                                          FontWeight.normal),
+                                                ),
+                                                Text(
+                                                  data['desc'],
+                                                  textAlign: TextAlign.left,
+                                                  style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.normal),
                                                 ),
                                               ]),
                                         ),
@@ -475,7 +613,7 @@ class _HomePageState extends State<HomePage> {
                                     );
                                   }
 
-                                  if (data['plateNumber']
+                                  if (data['licenseNumber']
                                       .toString()
                                       .contains(queryName.toUpperCase())) {
                                     return Card(
@@ -483,10 +621,10 @@ class _HomePageState extends State<HomePage> {
                                       margin: const EdgeInsets.symmetric(
                                           vertical: 10),
                                       child: Container(
-                                        height: 100,
+                                        padding: EdgeInsets.all(10),
                                         child: ListTile(
                                           title: Text(
-                                            data['plateNumber'],
+                                            data['licenseNumber'],
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
                                             style: TextStyle(
@@ -498,8 +636,53 @@ class _HomePageState extends State<HomePage> {
                                               crossAxisAlignment:
                                                   CrossAxisAlignment.start,
                                               children: [
+                                                SizedBox(
+                                                  height: 10,
+                                                ),
+                                                Text(
+                                                  "VIOLATOR NAME",
+                                                  textAlign: TextAlign.left,
+                                                  style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.bold),
+                                                ),
+                                                Text(
+                                                  data['violatorName'],
+                                                  textAlign: TextAlign.left,
+                                                  style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.normal),
+                                                ),
+                                                Text(
+                                                  "MV PLATE NUMBER",
+                                                  textAlign: TextAlign.left,
+                                                  style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.bold),
+                                                ),
+                                                Text(
+                                                  data['plateNumber'],
+                                                  textAlign: TextAlign.left,
+                                                  style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.normal),
+                                                ),
+                                                Text(
+                                                  "VIOLATION",
+                                                  textAlign: TextAlign.left,
+                                                  style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.bold),
+                                                ),
                                                 Text(
                                                   data['violation'],
+                                                  textAlign: TextAlign.left,
+                                                  style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.normal),
+                                                ),
+                                                Text(
+                                                  "DATE & TIME",
                                                   textAlign: TextAlign.left,
                                                   style: TextStyle(
                                                       fontWeight:
@@ -510,6 +693,13 @@ class _HomePageState extends State<HomePage> {
                                                   textAlign: TextAlign.left,
                                                   style: TextStyle(
                                                       fontWeight:
+                                                          FontWeight.normal),
+                                                ),
+                                                Text(
+                                                  "LOCATION",
+                                                  textAlign: TextAlign.left,
+                                                  style: TextStyle(
+                                                      fontWeight:
                                                           FontWeight.bold),
                                                 ),
                                                 Text(
@@ -517,7 +707,14 @@ class _HomePageState extends State<HomePage> {
                                                   textAlign: TextAlign.left,
                                                   style: TextStyle(
                                                       fontWeight:
-                                                          FontWeight.bold),
+                                                          FontWeight.normal),
+                                                ),
+                                                Text(
+                                                  data['desc'],
+                                                  textAlign: TextAlign.left,
+                                                  style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.normal),
                                                 ),
                                               ]),
                                         ),
@@ -574,29 +771,30 @@ class _HomePageState extends State<HomePage> {
     if (formKey.currentState!.validate()) {
       final records = FirebaseFirestore.instance.collection('records').doc();
       DateTime now = DateTime.now();
-      dateTime = DateFormat("MMMM d, yyyy h:mm:ss aa").format(now);
+      dateTime = DateFormat("MMMM d, yyyy h:mm aa").format(now);
       order = DateFormat("yMMddHHmm").format(now);
 
       final data = {
         'order': order,
         'dateTime': dateTime,
+        'licenseNumber': licenseNumber,
+        'violatorName': violatorName,
         'plateNumber': plateNumber,
         'gpsAddress': gpsAddress,
-        'gpsLat': locationLat,
-        'gpsLong': locationLong,
         'desc': description,
         'violation': selectedViolation
       };
 
       await records.set(data);
+
       _description.clear();
       _plateNumber.clear();
+      _licenseNumber.clear();
+      _violatorName.clear();
 
       setState(() {
-        selectedViolation = null;
+        selectedViolation = "";
       });
-
-      //formKey.currentState!.reset();
 
       return showDialog(
         barrierDismissible: true,

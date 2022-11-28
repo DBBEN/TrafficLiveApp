@@ -49,7 +49,7 @@ class _LoginPageState extends State<LoginPage> {
                            child: Text(
                             "TrafficLive",
                             style: GoogleFonts.montserrat(
-                              fontSize: 50,
+                              fontSize: 40,
                               fontWeight: FontWeight.bold,
                               color: Theme.of(context).primaryColor 
                             ),

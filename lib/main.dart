@@ -43,6 +43,27 @@ class _MyAppState extends State<MyApp> {
   void initState(){
     super.initState();
     getUserLoggedInStatus();
+    handleLocation();
+  }
+
+  handleLocation() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      await Geolocator.openLocationSettings();
+      return Future.error('Location services are disabled.');
+    }
+
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        return Future.error("Location Premissions are denied");
+      }
+    }
+
   }
 
   getUserLoggedInStatus() async {
